@@ -46,7 +46,9 @@ public class Plant implements Runnable {
 
     public final int ORANGES_PER_BOTTLE = 3;
 
-    private static final int NUM_WORKERS = 3;
+    private static final int NUM_LINES = 1;
+    private static final int WORKERS_PER_LINE = Oranges.values().length - 2;
+    private static final int NUM_WORKERS = NUM_LINES * WORKERS_PER_LINE;
 
     private final Thread[] workers;
     private final int plantNum;
