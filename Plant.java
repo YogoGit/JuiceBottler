@@ -2,7 +2,7 @@ public class Plant implements Runnable {
     // How long do we want to run the juice processing
     public static final long PROCESSING_TIME = 5 * 1000;
 
-    private static final int NUM_PLANTS = 3;
+    private static final int NUM_PLANTS = 1;
 
     public static void main(String[] args) {
         // Startup the plants
@@ -46,18 +46,25 @@ public class Plant implements Runnable {
 
     public final int ORANGES_PER_BOTTLE = 3;
 
-    private final Thread thread;
+    private static final int NUM_WORKERS = 3;
+
+    private final Thread[] workers;
+    private final int plantNum;
     private volatile boolean timeToWork;
     private volatile int orangesProcessed;
 
     Plant(int plantNum) {
-        thread = new Thread(this, "PlantNum[" + plantNum + "]");
+        this.plantNum = plantNum;
+        workers = new Thread[NUM_WORKERS];
         orangesProcessed = 0;
     }
 
     public void startPlant() {
         timeToWork = true;
-        thread.start();
+        for (int i = 0; i < NUM_WORKERS; i++) {
+            workers[i] = new Thread(this, "PlantNum[" + plantNum + "][" + (i + 1) + "]");
+            workers[i].start();
+        }
     }
 
     public void stopPlant() {
@@ -65,13 +72,16 @@ public class Plant implements Runnable {
     }
 
     public void waitToStop() {
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            System.err.println(Thread.currentThread().getName() + " stop malfunction");
+        for (Thread worker : workers) {
+            try {
+                worker.join();
+            } catch (InterruptedException e) {
+                System.err.println(worker.getName() + " stop malfunction");
+            }
         }
     }
 
+    // This is run once per worker
     public void run() {
         System.out.print(Thread.currentThread().getName() + " Processing oranges");
         Worker worker = new Worker(this);
